@@ -5,6 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 require('dotenv').config();
 const cors = require('cors');
+const cron = require('node-cron');
+const axios = require('axios'); // You might need to install axios if you haven't already
 
 
 const verifyToken = require('./middlewares/verifyToken')
@@ -49,6 +51,19 @@ app.use('/api/signout', signoutRouter);
 app.use('/api/', userProfileRouter);
 app.use('/api/', friendRouter)
 app.use('/api', messageRouter)
+// Keep-Alive Route
+app.get('/keep-alive', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// Schedule a cron job to ping the keep-alive route every 14 minutes
+cron.schedule('*/14 * * * *', function() {
+  console.log('Sending keep-alive ping');
+  // Replace 'http://localhost:3000' with your actual server URL
+  axios.get('https://messengernode.onrender.com')
+    .then(response => console.log(`Keep-alive ping status: ${response.status}`))
+    .catch(error => console.error('Error sending keep-alive ping:', error));
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
